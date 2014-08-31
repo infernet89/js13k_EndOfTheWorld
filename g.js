@@ -14,13 +14,16 @@ var string;
 var offsetY=0;
 var ostacoli=[];
 var progressLevel;
+var shooting;
+var bullet;
+var aliens=[];
 
 //setup
 canvas = document.getElementById("g");
 ctx = canvas.getContext("2d");
 pg=new Object();
 pg.px=660;
-pg.py=100;
+pg.py=55;
 pg.dx=0;
 pg.dy=0;
 pg.ax=0;
@@ -30,7 +33,7 @@ window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
 activeTask=setInterval(run, 33);
 
-levelUp();levelUp();levelUp();//DEBUG!
+levelUp();levelUp();levelUp();levelUp();levelUp();//DEBUG!
 
 function run()
 {
@@ -169,6 +172,16 @@ function run()
 
         drawPg();
 
+        //caduta rocce
+        for(i=0;i<ostacoli.length;i++)
+        {
+            ostacoli[i].draw();
+            if(pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height && pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width)
+                gameover();
+            if(ostacoli[i].py>370) ostacoli[i].dy=2;
+            if(ostacoli[i].py>620) ostacoli.splice(i,1);
+        }
+
         //acqua
         ctx.save();
         ctx.globalAlpha=0.8;
@@ -183,6 +196,130 @@ function run()
         }
         ctx.fillRect(0,430,canvasW,170);
         ctx.restore();
+
+        if(ostacoli.length<=0) levelUp();
+    }
+    else if(level==4)
+    {
+        //muri
+        ctx.fillStyle="#7B7B7B";
+        ctx.font = "30px Courier";
+        string="WALL";  //25px
+        for(i=0;i<=(canvasH/25)+string.length+5;i++)
+        {
+            ctx.fillText(string[i%string.length],2,i*25+progressLevel-200);
+            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25+progressLevel-200);
+        }
+
+        drawPg();
+        ctx.fillStyle="#00FF00";
+        ctx.font = "60px Arial";
+        if(progressLevel<155) ctx.fillText("R",pg.px-42,canvasH+156-155/2-progressLevel/2);
+        else ctx.fillText("R",pg.px-42,canvasH-1);
+
+        //acqua
+        ctx.save();
+        ctx.globalAlpha=0.8;
+        ctx.fillStyle="#007eff";
+        ctx.font = "30px Courier";
+        string="WATER";
+        for(k=0;k<10;k++)
+        {
+            ctx.globalAlpha-=0.06;
+            for(i=0;i<(canvasW/15);i++)
+                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18+progressLevel);
+        }
+        ctx.fillRect(0,430+progressLevel,canvasW,170);
+        ctx.restore();
+
+        if(progressLevel>170)
+        {
+            levelUp();
+            return;
+        }
+        progressLevel+=2;
+        if(progressLevel<155) pg.py+=2;
+    }
+    else if(level==5)
+    {
+        //muri
+        ctx.fillStyle="#7B7B7B";
+        ctx.font = "30px Courier";
+        string="ALLW";  //25px
+        for(i=0;i<=(canvasH/25)+string.length+5;i++)
+        {
+            ctx.fillText(string[i%string.length],2,i*25+progressLevel-200);
+            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25+progressLevel-200);
+        }
+
+        //movimento
+        if(Kpressed[82]) pg.ax=-0.5;
+        else if(Kpressed[68]) pg.ax=0.5;
+        else
+        {
+            pg.ax=0;
+            pg.dx=pg.dx/1.1;
+        }
+        //speed limit
+        if(Math.abs(pg.dx)>5) pg.dx=5*pg.dx/Math.abs(pg.dx);
+        //sbatte contro i muri
+        if(pg.px<15 && pg.dx<0) pg.dx=-pg.dx*0.6;
+        if(pg.px>canvasW-132 && pg.dx>0) pg.dx=-pg.dx*0.6;
+
+        //i nemici, ALIENI
+        ctx.fillStyle="#FFFFFF";
+        ctx.font = "55px Courier";
+        aliens.px=999;
+        aliens.width=-999;
+        for(i=0;i<aliens.length;i++)
+        {
+            ctx.fillText(aliens[i].txt,aliens[i].px,aliens[i].py);
+            aliens[i].px+=aliens.dx;
+            //collisioni
+            if(bullet.py+5>aliens[i].py-35 && bullet.py<aliens[i].py+aliens[i].height-35 && bullet.px+3>aliens[i].px && bullet.px<aliens[i].px+aliens[i].width)
+            {
+                aliens.splice(i,1);
+                bullet.px=-100;
+                shooting=false;
+                i=i-1;
+                continue;
+            }
+            else if(pg.py+pg.height>aliens[i].py-35 && pg.py<aliens[i].py+aliens[i].height-35 && pg.px+pg.width>aliens[i].px && pg.px<aliens[i].px+aliens[i].width)
+            {
+                gameover();
+                return;
+            }
+            if(aliens.px>aliens[i].px) aliens.px=aliens[i].px;
+            if(aliens.px+aliens.width<aliens[i].px+aliens[i].width) aliens.width=aliens[i].px+aliens[i].width-aliens.px;
+        }
+        if(aliens.px<20 && aliens.dx<0)
+        {
+            aliens.dx=-aliens.dx;
+            for(i=0;i<aliens.length;i++) aliens[i].py+=35;
+        }
+        else if(aliens.px+aliens.width>780 && aliens.dx>0)
+        {
+            aliens.dx=-aliens.dx;
+            for(i=0;i<aliens.length;i++) aliens[i].py+=35;
+        }
+
+        //spara
+        if(!shooting && Kpressed[76])
+        {
+            shooting=true;
+            bullet.px=pg.px+48;
+            bullet.py=555;
+            bullet.dy=-12;
+        }
+        else if(shooting)
+        {
+            ctx.fillStyle="#FFFFFF";
+            ctx.fillRect(bullet.px,bullet.py,3,5);
+            bullet.py+=bullet.dy;
+            if(bullet.py<-10) shooting=false;
+        }
+
+        drawPg();
     }
 }
 function gameover()
@@ -251,12 +388,56 @@ function levelUp()
     }
     else if(level==3)
     {
+        while(ostacoli.length>0) ostacoli.pop();
         pg.px=303;
         pg.py=400;
         pg.dx=0;
         pg.dy=0;
         pg.ax=0;
         pg.ay=0;
+        pg.width=75;
+        //rocce cadenti (meteoriti?)
+        quanti=rand(20,60);
+        for(i=0;i<quanti;i++)
+        {
+            t=new ostacoloObj(2);
+            t.px=rand(20,canvasW-85);
+            t.py=rand(-100,-10000);
+            t.dy=rand(6,8);
+            ostacoli.push(t);
+        }
+    }
+    else if(level==4)
+    {
+        pg.ax=0;
+        pg.dx=0;
+        if(pg.px<62) pg.px=62;
+    }
+    else if(level==5)
+    {
+        while(aliens.length>0) aliens.pop();
+        pg.px=pg.px-42;
+        pg.width=115;
+        if(pg.px<62) pg.px=62;
+        pg.py=canvasH-46;
+        shooting=false;
+        bullet=new Object();
+        //generiamo gli alieni
+        string="ALIENS";
+        for(k=0;k<3;k++)
+            for(i=0;i<12;i++)
+            {
+                t=new Object();
+                t.txt=string[i%string.length];
+                t.px=40*i+20;
+                t.py=35*k-72+200;
+                t.width=35;
+                t.height=35;
+                aliens.push(t);
+            }
+        aliens.px=20;
+        aliens.dx=3;
+        aliens.width=470;
     }
 
 }
@@ -295,6 +476,7 @@ function drawRock(x,y)
 }
 function drawPg()
 {
+    //ctx.fillRect(pg.px,pg.py,pg.width,pg.height);
     ctx.save();
     ctx.translate(0,45);
 	if(level<=2)
@@ -307,7 +489,7 @@ function drawPg()
     	ctx.translate(-20,25);
     	ctx.fillText("D",0,0);
 	}
-    else if(level==3)
+    else if(level<=4)
     {
         ctx.font = "60px Arial";
         ctx.translate(pg.px,pg.py);
@@ -317,6 +499,20 @@ function drawPg()
         if(Kpressed[68]) ctx.fillStyle="#FF0000";
         else ctx.fillStyle="#00FF00";
         ctx.fillText("D",34,0);
+    }
+    else if(level<=5)
+    {
+        ctx.font = "60px Arial";
+        ctx.translate(pg.px,pg.py);
+        if(Kpressed[82]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("R",0,0);
+        if(Kpressed[76]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("L",42,0);
+        if(Kpressed[68]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("D",76,0);
     }
     ctx.restore();
 
