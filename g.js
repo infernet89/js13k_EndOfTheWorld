@@ -30,7 +30,7 @@ window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
 activeTask=setInterval(run, 33);
 
-levelUp();//DEBUG!
+levelUp();levelUp();levelUp();//DEBUG!
 
 function run()
 {
@@ -91,7 +91,98 @@ function run()
 
     	drawPg();
         progressLevel++;
-        document.title=progressLevel;
+        if(progressLevel>=1000) levelUp();
+    }
+    else if(level==2)
+    {
+        //muri
+        ctx.fillStyle="#7B7B7B";
+        ctx.font = "30px Courier";
+        string="WALL";  //25px
+        for(i=0;i<=(canvasH/25)+string.length;i++)
+        {
+            ctx.fillText(string[i%string.length],2,i*25);
+            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25);
+        }
+
+        drawPg();
+
+        //la L
+        ctx.fillStyle="#00FF00";
+        ctx.font = "60px Arial";
+        ctx.fillText("L",303,445);
+
+        //acqua
+        ctx.save();
+        ctx.globalAlpha=0.8;
+        ctx.fillStyle="#007eff";
+        ctx.font = "30px Courier";
+        string="WATER";
+        for(k=0;k<10;k++)
+        {
+            ctx.globalAlpha-=0.06;
+            for(i=0;i<(canvasW/15);i++)
+                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18);
+        }
+        ctx.fillRect(0,430,canvasW,170);
+        ctx.restore();
+
+        if(Math.abs(pg.py-400)<1 && Math.abs(pg.dy)<2)
+        {
+            pg.ay=0;
+            pg.dy=0;
+            levelUp();
+            return;
+        }
+        if(pg.py>400)
+        {
+            if(pg.dy>2) pg.dy=pg.dy-2;
+            pg.ay=-0.2;
+            pg.ax=0;
+            pg.dx=0;
+        }
+        else if(pg.ax==0 && pg.py<400) pg.ay=0.5;
+        //else if(pg.py<440) pg.ay=-0.2;
+        //else pg.ay=0;
+        //progressLevel++;
+
+    }
+    else if(level==3)
+    {
+        //muri
+        ctx.fillStyle="#7B7B7B";
+        ctx.font = "30px Courier";
+        string="WALL";  //25px
+        for(i=0;i<=(canvasH/25)+string.length;i++)
+        {
+            ctx.fillText(string[i%string.length],2,i*25);
+            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25);
+        }
+
+        //movimenti
+        if(Kpressed[76]) pg.ax=-0.2;
+        else if(Kpressed[68]) pg.ax=0.2;
+        else pg.ax=0;
+        //sbatte contro i muri
+        if(pg.px<15 && pg.dx<0) pg.dx=-pg.dx*0.6;
+        if(pg.px>canvasW-90 && pg.dx>0) pg.dx=-pg.dx*0.6;
+
+        drawPg();
+
+        //acqua
+        ctx.save();
+        ctx.globalAlpha=0.8;
+        ctx.fillStyle="#007eff";
+        ctx.font = "30px Courier";
+        string="WATER";
+        for(k=0;k<10;k++)
+        {
+            ctx.globalAlpha-=0.06;
+            for(i=0;i<(canvasW/15);i++)
+                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18);
+        }
+        ctx.fillRect(0,430,canvasW,170);
+        ctx.restore();
     }
 }
 function gameover()
@@ -102,6 +193,7 @@ function gameover()
 }
 function levelUp()
 {
+    progressLevel=0;
 	level++;
 	if(level==1)
 	{
@@ -147,6 +239,26 @@ function levelUp()
         }
 
 	}
+    else if(level==2)
+    {
+        while(ostacoli.length>0) ostacoli.pop();
+        pg.py=-190;
+        pg.px=400;
+        pg.dy=8;
+        pg.dx=0;
+        pg.ax=-0.1;
+        pg.ay=0.5;
+    }
+    else if(level==3)
+    {
+        pg.px=303;
+        pg.py=400;
+        pg.dx=0;
+        pg.dy=0;
+        pg.ax=0;
+        pg.ay=0;
+    }
+
 }
 function drawFire(x,y)
 {
@@ -185,7 +297,7 @@ function drawPg()
 {
     ctx.save();
     ctx.translate(0,45);
-	if(level<=1)
+	if(level<=2)
 	{
 		if(Kpressed[68]) ctx.fillStyle="#FF0000";
 		else ctx.fillStyle="#00FF00";
@@ -195,6 +307,17 @@ function drawPg()
     	ctx.translate(-20,25);
     	ctx.fillText("D",0,0);
 	}
+    else if(level==3)
+    {
+        ctx.font = "60px Arial";
+        ctx.translate(pg.px,pg.py);
+        if(Kpressed[76]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("L",0,0);
+        if(Kpressed[68]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("D",34,0);
+    }
     ctx.restore();
 
 	//lo muovo
