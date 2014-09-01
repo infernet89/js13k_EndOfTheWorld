@@ -110,11 +110,10 @@ function run()
     	//gravità
     	if(pg.py<100) pg.dy=2;
     	else pg.dy=0;
-
+        if(progressLevel>=1000) pg.dy=4;
     	drawPg();
         progressLevel++;
-        if(progressLevel>=1000) levelUp();
-        drawParticle();
+        if(progressLevel>=1130) levelUp();
     }
     else if(level==2)
     {
@@ -144,8 +143,8 @@ function run()
         for(k=0;k<10;k++)
         {
             ctx.globalAlpha-=0.06;
-            for(i=0;i<(canvasW/15);i++)
-                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18);
+            acqua=(string+string+string+string+string+string+string+string+string+string+string+string).substring(k);
+            ctx.fillText(acqua,0,450+k*18);
         }
         ctx.fillRect(0,430,canvasW,170);
         ctx.restore();
@@ -169,7 +168,6 @@ function run()
         //else if(pg.py<440) pg.ay=-0.2;
         //else pg.ay=0;
         //progressLevel++;
-        drawParticle();
     }
     else if(level==3)
     {
@@ -216,14 +214,13 @@ function run()
         for(k=0;k<10;k++)
         {
             ctx.globalAlpha-=0.06;
-            for(i=0;i<(canvasW/15);i++)
-                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18);
+            acqua=(string+string+string+string+string+string+string+string+string+string+string+string).substring(k);
+            ctx.fillText(acqua,0,450+k*18);
         }
         ctx.fillRect(0,430,canvasW,170);
         ctx.restore();
 
         if(ostacoli.length<=0) levelUp();
-        drawParticle();
     }
     else if(level==4)
     {
@@ -252,8 +249,8 @@ function run()
         for(k=0;k<10;k++)
         {
             ctx.globalAlpha-=0.06;
-            for(i=0;i<(canvasW/15);i++)
-                ctx.fillText(string[(i+k*3)%string.length],15*i,450+k*18+progressLevel);
+            acqua=(string+string+string+string+string+string+string+string+string+string+string+string).substring(k);
+            ctx.fillText(acqua,0,450+k*18+progressLevel);
         }
         ctx.fillRect(0,430+progressLevel,canvasW,170);
         ctx.restore();
@@ -349,7 +346,6 @@ function run()
 
         drawPg();
         if(aliens.length==0) levelUp();
-        drawParticle();
     }
     else if(level==6)
     {
@@ -364,6 +360,7 @@ function run()
         {
             ctx.fillText(string[i%string.length],2,i*25-200+progressLevel*10);
             if(progressLevel<200) ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25-200);
+            else if(progressLevel==200) hurtParticle(canvasW-10,i*25-200,"#7B7B7B");
         }
         drawPg();
         if(progressLevel>100)
@@ -421,7 +418,10 @@ function run()
         for(i=0;i<ostacoli.length;i++)
         {
             if(pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width && pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height)
+            {
                 pg.dx=ostacoli[i].dx;
+                hurtParticle(ostacoli[i].px,ostacoli[i].py+ostacoli[i].height/2,"#7B7B7B");
+            }
             ostacoli[i].draw();
             if(ostacoli[i].px<-100)
             {
@@ -497,6 +497,7 @@ function run()
             levelUp();
         }
     }
+    drawParticle();
 }
 function gameover()
 {
@@ -665,11 +666,11 @@ function drawRock(x,y)
     ctx.font = "60px Courier";
     ctx.fillStyle="#7B7B7B";
     ctx.fillText("R",x,y);
-    ctx.fillStyle="#7B7B7B";
+    ctx.fillStyle="#8B8B8B";
     ctx.fillText("O",x+28,y);
-    ctx.fillStyle="#7B7B7B";
+    ctx.fillStyle="#707070";
     ctx.fillText("C",x,y+35);
-    ctx.fillStyle="#7B7B7B";
+    ctx.fillStyle="#858585";
     ctx.fillText("K",x+28,y+35);
     ctx.restore();
 }
