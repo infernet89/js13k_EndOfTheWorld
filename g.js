@@ -17,6 +17,7 @@ var progressLevel;
 var shooting;
 var bullet;
 var aliens=[];
+var offsetWon=0;
 
 //setup
 canvas = document.getElementById("g");
@@ -33,7 +34,7 @@ window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
 activeTask=setInterval(run, 33);
 
-levelUp();levelUp();levelUp();levelUp();levelUp();//DEBUG!
+//levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();//DEBUG!
 
 function run()
 {
@@ -45,7 +46,8 @@ function run()
     	//titolo
     	ctx.fillStyle="#00FF00";
     	ctx.font = "60px Arial";
-    	ctx.fillText("The END of the WORL",50,100);
+        if(offsetWon>0) ctx.fillText(" The END of the WOR",50,100);
+    	else ctx.fillText("The END of the WORL",50,100);
     	//alert(ctx.measureText("The END of the WORL").width);
     	drawPg();
     	ctx.fillStyle="#FFFFFF";
@@ -248,8 +250,8 @@ function run()
         string="ALLW";  //25px
         for(i=0;i<=(canvasH/25)+string.length+5;i++)
         {
-            ctx.fillText(string[i%string.length],2,i*25+progressLevel-200);
-            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25+progressLevel-200);
+            ctx.fillText(string[i%string.length],2,i*25-200);
+            ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25-200);
         }
 
         //movimento
@@ -320,11 +322,155 @@ function run()
         }
 
         drawPg();
+        if(aliens.length==0) levelUp();
+    }
+    else if(level==6)
+    {
+        ctx.save();
+        if(progressLevel<100) ctx.translate(rand(-1,2),rand(-2,2));
+        if(progressLevel>200) ctx.translate(rand(-4,4),rand(-4,4));
+        //muri
+        ctx.fillStyle="#7B7B7B";
+        ctx.font = "30px Courier";
+        string="ALLW";  //25px
+        for(i=0;i<=(canvasH/25)+string.length+5;i++)
+        {
+            ctx.fillText(string[i%string.length],2,i*25-200+progressLevel*10);
+            if(progressLevel<200) ctx.fillText(string[(i+2)%string.length],canvasW-20,i*25-200);
+        }
+        drawPg();
+        if(progressLevel>100)
+        {//THE FIRE!
+            ctx.font = "50px Courier";
+            string="FIREWALL";
+            for(k=0;k<5;k++)
+            for(i=0;i<(canvasH/35);i++)
+            {
+                r=rand(0,4);
+                if(r==0) ctx.fillStyle="#ff0000";
+                else if(r==1) ctx.fillStyle="#ffcc00";
+                else if(r==2) ctx.fillStyle="#ff4400";
+                else if(r==3) ctx.fillStyle="#ff8800";
+                else ctx.fillStyle="#ffaa00";
+                ctx.fillText(string[(i+3*k)%string.length],progressLevel-140-k*30,i*35+35);          
+            }
+        }
+        if(progressLevel>150)
+        {//la O
+            ctx.fillStyle="#00FF00";
+            ctx.font = "60px Arial";
+            ctx.fillText("O",(progressLevel-150)*15-200,pg.py+45);
+            if((progressLevel-150)*15-150>pg.px)
+            {
+                pg.px+=15;
+                pg.py-=4;
+            }
+        }
+        ctx.restore();
+        progressLevel++;
+        if(progressLevel>230) levelUp();
+    }
+    else if(level==7)
+    {
+        //il goal
+        ctx.fillStyle="#00FF00";
+        ctx.font = "60px Arial";
+        ctx.fillText("The END of the W____",850-(progressLevel/2),100);
+
+        //movimento
+        speed=5;
+        if(Kpressed[79]) pg.dx=-speed;
+        else if(Kpressed[68]) pg.dx=+speed;
+        else pg.dx=0;
+        if(Kpressed[82]) pg.dy=-speed;
+        else if(Kpressed[76]) pg.dy=+speed;
+        else pg.dy=0;
+        if(pg.px>640 && pg.dx>0) pg.dx=0;
+        if(pg.py>555 && pg.dy>0) pg.dy=0;
+        if(pg.py<0 && pg.dy<0) pg.dy=0;
+        //ostacoli
+        for(i=0;i<ostacoli.length;i++)
+        {
+            if(pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width && pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height)
+                pg.dx=ostacoli[i].dx;
+            ostacoli[i].draw();
+            if(ostacoli[i].px<-100)
+            {
+                ostacoli.splice(i,1);
+                i=i-1;
+            }
+        }
+
+        drawPg();
+
+        //THE FIRE!
+        ctx.font = "50px Courier";
+        string="FIREWALL";
+        for(k=0;k<20;k++)
+            for(i=0;i<(canvasH/35);i++)
+            {
+                r=rand(0,4);
+                if(r==0) ctx.fillStyle="#ff0000";
+                else if(r==1) ctx.fillStyle="#ffcc00";
+                else if(r==2) ctx.fillStyle="#ff4400";
+                else if(r==3) ctx.fillStyle="#ff8800";
+                else ctx.fillStyle="#ffaa00";
+                ctx.fillText(string[(i+7*k)%string.length],(progressLevel/5)-30-k*30,i*35+35);          
+            }
+        if(pg.px+20<progressLevel/5) gameover();
+        progressLevel++;
+        if(progressLevel>1350)
+        {
+            if(pg.py>35 && pg.py<70 && pg.px>620-progressLevel/2+700 && pg.px<660-progressLevel/2+700)
+            {
+                offsetWon=progressLevel;
+                levelUp();
+            }
+        }
+    }
+    else if(level==8)
+    {//credits
+        ctx.fillStyle="#00FF00";
+        ctx.font = "60px Arial";
+        ctx.fillText("The END of the WORLD",850-(offsetWon/2)-(progressLevel/8),100);
+
+        //THE FIRE!
+        ctx.font = "50px Courier";
+        string="FIREWALL";
+        for(k=0;k<20;k++)
+            for(i=0;i<(canvasH/35);i++)
+            {
+                r=rand(0,4);
+                if(r==0) ctx.fillStyle="#ff0000";
+                else if(r==1) ctx.fillStyle="#ffcc00";
+                else if(r==2) ctx.fillStyle="#ff4400";
+                else if(r==3) ctx.fillStyle="#ff8800";
+                else ctx.fillStyle="#ffaa00";
+                ctx.fillText(string[(i+7*k)%string.length],(offsetWon/5)-30-k*30-progressLevel*3,i*35+35);          
+            }
+        if(progressLevel>250)
+        {
+            ctx.save();
+            ctx.fillStyle="#FFFFFF";
+            ctx.font = "50px Arial";
+            if(progressLevel>600) ctx.globalAlpha=(700-progressLevel)/100;
+            else ctx.globalAlpha=(progressLevel-250)/200;
+            if(progressLevel>700) ctx.globalAlpha=0;
+            ctx.fillText("A game by Infernet89",130,400);
+            ctx.restore();
+        }
+
+        progressLevel++;
+        if(progressLevel>1000)
+        {
+            level=-1;
+            levelUp();
+        }
     }
 }
 function gameover()
 {
-    return;
+    //return;
     level--;
     levelUp();
 }
@@ -439,6 +585,28 @@ function levelUp()
         aliens.dx=3;
         aliens.width=470;
     }
+    else if(level==7)
+    {
+        while(ostacoli.length>0) ostacoli.pop();
+        pg.px=300;
+        pg.py=300;
+        pg.dx=0;
+        pg.dy=0;
+        pg.ax=0;
+        pg.ay=0;
+        pg.width=160;
+
+        //generiamo rocce
+        quanti=rand(25,50);
+        for(i=0;i<quanti;i++)
+        {
+            t=new ostacoloObj(2);
+            t.px=rand(1000,14000);
+            t.py=rand(0,canvasH-75);
+            t.dx=-rand(7,14)
+            ostacoli.push(t);
+        }
+    }
 
 }
 function drawFire(x,y)
@@ -500,7 +668,7 @@ function drawPg()
         else ctx.fillStyle="#00FF00";
         ctx.fillText("D",34,0);
     }
-    else if(level<=5)
+    else if(level<=6)
     {
         ctx.font = "60px Arial";
         ctx.translate(pg.px,pg.py);
@@ -513,6 +681,29 @@ function drawPg()
         if(Kpressed[68]) ctx.fillStyle="#FF0000";
         else ctx.fillStyle="#00FF00";
         ctx.fillText("D",76,0);
+    }
+    else if(level==7)
+    {
+        ctx.font = "60px Arial";
+        ctx.translate(pg.px,pg.py);
+        if(Kpressed[79]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("O",0,0);
+        if(Kpressed[82]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("R",44,0);
+        ctx.globalAlpha=0.2;
+        ctx.fillText("▲",34,0);
+        ctx.globalAlpha=1;
+        if(Kpressed[76]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("L",86,0);
+        ctx.globalAlpha=0.2;
+        ctx.fillText("▼",76,0);
+        ctx.globalAlpha=1;
+        if(Kpressed[68]) ctx.fillStyle="#FF0000";
+        else ctx.fillStyle="#00FF00";
+        ctx.fillText("D",120,0);
     }
     ctx.restore();
 
