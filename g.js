@@ -13,11 +13,13 @@ var Kpressed=[];
 var string;
 var offsetY=0;
 var ostacoli=[];
-var progressLevel;
+var progressLevel=0;
 var shooting;
 var bullet;
 var aliens=[];
 var offsetWon=0;
+var stars=[];
+var particles=[];
 
 //setup
 canvas = document.getElementById("g");
@@ -35,14 +37,18 @@ window.addEventListener('keyup',keyUp,false);
 activeTask=setInterval(run, 33);
 
 //levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();//DEBUG!
-
 function run()
 {
 	ctx.clearRect(0, 0, canvasW, canvasH);
-    ctx.fillStyle="#000000";
+    var grd=ctx.createLinearGradient(0,0,0,canvasH);
+    grd.addColorStop(0,"#000000");
+    grd.addColorStop(1,"#101010");
+
+    ctx.fillStyle=grd;
     ctx.fillRect(0,0, canvasW, canvasH);
     if(level==0)
     {
+        playStars();
     	//titolo
     	ctx.fillStyle="#00FF00";
     	ctx.font = "60px Arial";
@@ -57,7 +63,10 @@ function run()
     		pg.ay=0.5;
     		pg.ax=-0.3;
     	}
-    	if(pg.ay==0) ctx.fillText("press D to start",300,400);
+    	if(progressLevel%40<30) if(pg.ay==0) ctx.fillText("press D to start",300,400);
+        ctx.font = "10px Arial";
+        ctx.fillText("Made for JS13KGames competition",620,590);
+        progressLevel++;
     	if(pg.py>canvasH) levelUp();
     }
     else if(level==1)
@@ -84,8 +93,16 @@ function run()
         }
 
         //sbatte contro i muri
-    	if(pg.px<15 && pg.dx<0) pg.dx=-pg.dx*0.6;
-    	if(pg.px>canvasW-55 && pg.dx>0) pg.dx=-pg.dx*0.6;
+    	if(pg.px<15 && pg.dx<0)
+            {
+                pg.dx=-pg.dx*0.6;
+                hurtParticle(pg.px,pg.py+pg.height/2,"#00FF00");
+            }
+    	if(pg.px>canvasW-55 && pg.dx>0)
+        {
+            pg.dx=-pg.dx*0.6;
+            hurtParticle(pg.px+pg.width,pg.py+pg.height/2,"#00FF00");
+        }
 
         //spostamento
     	if(Kpressed[68]) pg.ax=0.8;
@@ -97,6 +114,7 @@ function run()
     	drawPg();
         progressLevel++;
         if(progressLevel>=1000) levelUp();
+        drawParticle();
     }
     else if(level==2)
     {
@@ -145,12 +163,13 @@ function run()
             pg.ay=-0.2;
             pg.ax=0;
             pg.dx=0;
+            hurtParticle(pg.px+pg.width/2,pg.py+pg.height,"#007eff");
         }
         else if(pg.ax==0 && pg.py<400) pg.ay=0.5;
         //else if(pg.py<440) pg.ay=-0.2;
         //else pg.ay=0;
         //progressLevel++;
-
+        drawParticle();
     }
     else if(level==3)
     {
@@ -180,7 +199,11 @@ function run()
             ostacoli[i].draw();
             if(pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height && pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width)
                 gameover();
-            if(ostacoli[i].py>370) ostacoli[i].dy=2;
+            if(ostacoli[i].py>370 && ostacoli[i].py<380)
+            {
+                ostacoli[i].dy=2;
+                hurtParticle(ostacoli[i].px+ostacoli[i].width/2,ostacoli[i].py+ostacoli[i].height,"#007eff");
+            }
             if(ostacoli[i].py>620) ostacoli.splice(i,1);
         }
 
@@ -200,6 +223,7 @@ function run()
         ctx.restore();
 
         if(ostacoli.length<=0) levelUp();
+        drawParticle();
     }
     else if(level==4)
     {
@@ -280,6 +304,8 @@ function run()
             //collisioni
             if(bullet.py+5>aliens[i].py-35 && bullet.py<aliens[i].py+aliens[i].height-35 && bullet.px+3>aliens[i].px && bullet.px<aliens[i].px+aliens[i].width)
             {
+                hurtParticle(aliens[i].px+aliens[i].width/2,aliens[i].py-aliens[i].height/2,"FFFFFF");
+                hurtParticle(aliens[i].px+aliens[i].width/2,aliens[i].py-aliens[i].height/2,"FFFFFF");
                 aliens.splice(i,1);
                 bullet.px=-100;
                 shooting=false;
@@ -323,6 +349,7 @@ function run()
 
         drawPg();
         if(aliens.length==0) levelUp();
+        drawParticle();
     }
     else if(level==6)
     {
@@ -372,6 +399,8 @@ function run()
     }
     else if(level==7)
     {
+        playStars();
+
         //il goal
         ctx.fillStyle="#00FF00";
         ctx.font = "60px Arial";
@@ -430,6 +459,7 @@ function run()
     }
     else if(level==8)
     {//credits
+        playStars();
         ctx.fillStyle="#00FF00";
         ctx.font = "60px Arial";
         ctx.fillText("The END of the WORLD",850-(offsetWon/2)-(progressLevel/8),100);
@@ -476,6 +506,7 @@ function gameover()
 }
 function levelUp()
 {
+    while(particles.length>0) particles.pop();
     progressLevel=0;
 	level++;
 	if(level==1)
@@ -576,7 +607,7 @@ function levelUp()
                 t=new Object();
                 t.txt=string[i%string.length];
                 t.px=40*i+20;
-                t.py=35*k-72+200;
+                t.py=35*k-72+18;
                 t.width=35;
                 t.height=35;
                 aliens.push(t);
@@ -754,4 +785,65 @@ function ostacoloObj(tipo) {
     this.dx+=this.ax;
     this.dy+=this.ay;
   }
+}
+//EYE CANDY
+function playStars()
+{
+    if(stars.length<=0)
+    {
+        //generiamo stars
+        while(stars.length>0) stars.pop();
+        quanti=rand(50,100);
+        for(i=0;i<quanti;i++)
+        {
+            t=new Object();
+            t.px=rand(0,canvasW*2);
+            t.py=rand(0,canvasH);
+            t.dx=-rand(20,22);
+            stars.push(t);
+        }
+    }
+    ctx.save();
+    //stars di sottofondo
+    ctx.fillStyle="#FFFFFF";
+    ctx.globalAlpha=0.7;
+    for(i=0;i<stars.length;i++)
+    {
+        ctx.fillRect(stars[i].px,stars[i].py,1,1);
+        stars[i].px+=stars[i].dx;
+        if(stars[i].px<0) stars[i].px+=canvasW*2;
+    }
+    ctx.restore();
+}
+function hurtParticle(x,y,color)
+{
+    for(ip=0;ip<10;ip++)
+    {
+        t=new Object();
+        t.px=x;
+        t.py=y;
+        t.dx=rand(-3,3);
+        t.dy=rand(-3,3);
+        t.color=color;
+        t.ttl=rand(5,20);
+        particles.push(t);
+    }
+}
+function drawParticle()
+{
+    ctx.save();
+    for(ipd=0;ipd<particles.length;ipd++)
+    {
+        ctx.fillStyle=particles[ipd].color;
+        ctx.fillRect(particles[ipd].px,particles[ipd].py,1,1);
+        particles[ipd].px+=particles[ipd].dx;
+        particles[ipd].py+=particles[ipd].dy;
+        particles[ipd].ttl--;
+        if(particles[ipd].ttl<=0)
+        {
+            particles.splice(ipd,1);
+            ipd=ipd-1;
+        }
+    }
+    ctx.restore();
 }
