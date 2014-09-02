@@ -22,6 +22,7 @@ var stars=[];
 var particles=[];
 var lightningDelay=100;
 var nGameOvers=0;
+var shootingStardelay;
 
 //setup
 canvas = document.getElementById("g");
@@ -285,6 +286,7 @@ function run()
     }
     else if(level==5)
     {
+        drawShootingstar();
         //muri
         ctx.fillStyle="#7B7B7B";
         ctx.font = "30px Courier";
@@ -919,4 +921,18 @@ function drawCalcinacci()
         t.ttl=rand(50,200);
         particles.push(t);
     }
+}
+function drawShootingstar()
+{
+    if(--shootingStardelay>0) return;
+    shootingStardelay=rand(10,50);
+    t=new Object();
+    t.px=rand(0,canvasW);
+    t.py=0;
+    t.dx=rand(-4,4)*7;
+    t.dy=rand(32,34);
+    t.color="#BBBBBB";
+    t.ttl=15;
+    particles.push(t);
+
 }
