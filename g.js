@@ -20,6 +20,8 @@ var aliens=[];
 var offsetWon=0;
 var stars=[];
 var particles=[];
+var lightningDelay=100;
+var nGameOvers=0;
 
 //setup
 canvas = document.getElementById("g");
@@ -48,6 +50,7 @@ function run()
     ctx.fillRect(0,0, canvasW, canvasH);
     if(level==0)
     {
+        drawLightning();
         playStars();
     	//titolo
     	ctx.fillStyle="#00FF00";
@@ -71,6 +74,8 @@ function run()
     }
     else if(level==1)
     {//vertical falling
+        drawLightning();
+        if(progressLevel<1000) drawRain();
     	//muri
     	ctx.fillStyle="#7B7B7B";
     	ctx.font = "30px Courier";
@@ -171,6 +176,9 @@ function run()
     }
     else if(level==3)
     {
+        ctx.save();
+        if(++progressLevel<30) ctx.translate(rand(-1,2),rand(-2,2));
+        if(ostacoli.length>2) drawCalcinacci();
         //muri
         ctx.fillStyle="#7B7B7B";
         ctx.font = "30px Courier";
@@ -186,8 +194,16 @@ function run()
         else if(Kpressed[68]) pg.ax=0.2;
         else pg.ax=0;
         //sbatte contro i muri
-        if(pg.px<15 && pg.dx<0) pg.dx=-pg.dx*0.6;
-        if(pg.px>canvasW-90 && pg.dx>0) pg.dx=-pg.dx*0.6;
+        if(pg.px<15 && pg.dx<0)
+        {
+            pg.dx=-pg.dx*0.6;
+            hurtParticle(pg.px,pg.py+pg.height/2,"#00FF00");
+        }
+        if(pg.px>canvasW-90 && pg.dx>0)
+        {
+            pg.dx=-pg.dx*0.6;
+            hurtParticle(pg.px+pg.width,pg.py+pg.height/2,"#00FF00");
+        }
 
         drawPg();
 
@@ -196,7 +212,10 @@ function run()
         {
             ostacoli[i].draw();
             if(pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height && pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width)
+            {
                 gameover();
+                return;
+            }
             if(ostacoli[i].py>370 && ostacoli[i].py<380)
             {
                 ostacoli[i].dy=2;
@@ -206,6 +225,7 @@ function run()
         }
 
         //acqua
+        ctx.restore();
         ctx.save();
         ctx.globalAlpha=0.8;
         ctx.fillStyle="#007eff";
@@ -349,6 +369,7 @@ function run()
     }
     else if(level==6)
     {
+        drawLightning();
         ctx.save();
         if(progressLevel<100) ctx.translate(rand(-1,2),rand(-2,2));
         if(progressLevel>200) ctx.translate(rand(-4,4),rand(-4,4));
@@ -396,6 +417,7 @@ function run()
     }
     else if(level==7)
     {
+        drawLightning();
         playStars();
 
         //il goal
@@ -502,6 +524,7 @@ function run()
 function gameover()
 {
     //return;
+    nGameOvers++;
     level--;
     levelUp();
 }
@@ -524,7 +547,7 @@ function levelUp()
         progressLevel=0;
         while(ostacoli.length>0) ostacoli.pop();
         //rocce da 100 a 1000
-        quanti=rand(3,15);
+        quanti=rand(3,15)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(2);
@@ -533,7 +556,7 @@ function levelUp()
             t.dy=-8;
             ostacoli.push(t);
         }
-        quanti=rand(2,10);
+        quanti=rand(2,10)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(2);
@@ -543,7 +566,7 @@ function levelUp()
             ostacoli.push(t);
         }
         //il fuoco, più lento
-        quanti=rand(10,30);
+        quanti=rand(10,30)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(1);
@@ -575,7 +598,7 @@ function levelUp()
         pg.ay=0;
         pg.width=75;
         //rocce cadenti (meteoriti?)
-        quanti=rand(20,60);
+        quanti=rand(20,60)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(2);
@@ -614,7 +637,8 @@ function levelUp()
                 aliens.push(t);
             }
         aliens.px=20;
-        aliens.dx=3;
+        aliens.dx=3-nGameOvers/10;
+        if(aliens.dx<1) aliens.dx=1;
         aliens.width=470;
     }
     else if(level==7)
@@ -629,7 +653,7 @@ function levelUp()
         pg.width=160;
 
         //generiamo rocce
-        quanti=rand(25,50);
+        quanti=rand(25,50)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(2);
@@ -847,4 +871,52 @@ function drawParticle()
         }
     }
     ctx.restore();
+}
+function drawLightning()
+{
+    ctx.restore();
+    if(--lightningDelay>0) return;
+    if(lightningDelay==0) lightningstartx=rand(0,canvasW);
+    if(lightningDelay<-5) lightningDelay=rand(200,600);
+    ctx.save();
+    ctx.globalAlpha=0.5;
+    ctx.translate(rand(-1,2),rand(-2,2));
+    ctx.fillStyle="#f4ff7d";
+    ctx.font = "10px Arial";
+    string="LIGHTNING";
+    lightningoffset=0;
+    for(il=0;il*10<=canvasH;il++)
+    {
+        ctx.fillText(string[il%string.length],lightningstartx-il*2+lightningoffset*10,il*10);
+        if(rand(1,10)>7) lightningoffset++;
+    }
+    ctx.globalAlpha=1;
+}
+function drawRain()
+{
+    for(ip=0;ip<5;ip++)
+    {
+        t=new Object();
+        t.px=rand(0,canvasW+150);
+        t.py=0;
+        t.dx=-2;
+        t.dy=rand(3,6);
+        t.color="#7dcdff";
+        t.ttl=rand(50,200);
+        particles.push(t);
+    }
+}
+function drawCalcinacci()
+{
+    for(ip=0;ip<1;ip++)
+    {
+        t=new Object();
+        t.px=rand(0,canvasW+150);
+        t.py=0;
+        t.dx=0;
+        t.dy=rand(12,14);
+        t.color="#7B7B7B";
+        t.ttl=rand(50,200);
+        particles.push(t);
+    }
 }
