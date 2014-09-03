@@ -214,8 +214,13 @@ function run()
             ostacoli[i].draw();
             if(pg.py+pg.height>ostacoli[i].py && pg.py<ostacoli[i].py+ostacoli[i].height && pg.px+pg.width>ostacoli[i].px && pg.px<ostacoli[i].px+ostacoli[i].width)
             {
-                gameover();
-                return;
+                if(ostacoli[i].dy!=2)
+                {
+                    gameover();
+                    return;
+                }
+                else if(ostacoli[i].dy==2 && pg.dx>0 && pg.px<ostacoli[i].px) pg.dx=0;
+                else if(ostacoli[i].dy==2 && pg.dx<0 && pg.px>ostacoli[i].px) pg.dx=0;
             }
             if(ostacoli[i].py>370 && ostacoli[i].py<380)
             {
@@ -600,7 +605,7 @@ function levelUp()
         pg.ay=0;
         pg.width=75;
         //rocce cadenti (meteoriti?)
-        quanti=rand(20,60)-nGameOvers;
+        quanti=rand(20,40)-nGameOvers;
         for(i=0;i<quanti;i++)
         {
             t=new ostacoloObj(2);
