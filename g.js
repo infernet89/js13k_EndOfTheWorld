@@ -521,7 +521,7 @@ function run()
         }
 
         progressLevel++;
-        document.title=progressLevel;
+        //document.title=progressLevel;
         if(progressLevel>600)
         {
             level=-1;
