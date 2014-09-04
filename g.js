@@ -291,6 +291,7 @@ function run()
     }
     else if(level==5)
     {
+        drawLightning();
         drawShootingstar();
         //muri
         ctx.fillStyle="#7B7B7B";
@@ -512,15 +513,16 @@ function run()
             ctx.save();
             ctx.fillStyle="#FFFFFF";
             ctx.font = "50px Arial";
-            if(progressLevel>600) ctx.globalAlpha=(700-progressLevel)/100;
+            if(progressLevel>400) ctx.globalAlpha=(500-progressLevel)/100;
             else ctx.globalAlpha=(progressLevel-250)/200;
-            if(progressLevel>700) ctx.globalAlpha=0;
+            if(progressLevel>500) ctx.globalAlpha=0;
             ctx.fillText("A game by Infernet89",130,400);
             ctx.restore();
         }
 
         progressLevel++;
-        if(progressLevel>1000)
+        document.title=progressLevel;
+        if(progressLevel>600)
         {
             level=-1;
             levelUp();
@@ -939,5 +941,29 @@ function drawShootingstar()
     t.color="#BBBBBB";
     t.ttl=15;
     particles.push(t);
+    st=new Object();
+    st.px=t.px+1;
+    st.py=-1;
+    st.dx=t.dx;
+    st.dy=t.dy;
+    st.color="#BBBBBB";
+    st.ttl=12;
+    particles.push(st);
+    st=new Object();
+    st.px=t.px-1;
+    st.py=-1;
+    st.dx=t.dx;
+    st.dy=t.dy;
+    st.color="#BBBBBB";
+    st.ttl=12;
+    particles.push(st);
+    st=new Object();
+    st.px=t.px;
+    st.py=-1;
+    st.dx=t.dx;
+    st.dy=t.dy;
+    st.color="#BBBBBB";
+    st.ttl=12;
+    particles.push(st);
 
 }
