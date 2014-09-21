@@ -23,6 +23,16 @@ var particles=[];
 var lightningDelay=100;
 var nGameOvers=0;
 var shootingStardelay;
+var useKeyboard=false;
+
+//mobile controls
+var mousex=-100;
+var mousey=-100;
+var mouse2x=-100;
+var mouse2y=-100;
+var mouse3x=-100;
+var mouse3y=-100;
+var dragging=false;
 
 //setup
 canvas = document.getElementById("g");
@@ -34,6 +44,18 @@ pg.dx=0;
 pg.dy=0;
 pg.ax=0;
 pg.ay=0;
+
+if (window.navigator.pointerEnabled) {
+    canvas.addEventListener("pointermove", mossoMouse, false);
+    canvas.addEventListener("pointerup", rilasciatoTap, false);
+}
+else
+{
+    canvas.addEventListener("touchmove", mossoTap);
+    canvas.addEventListener("touchstart", cliccatoTap);
+    canvas.addEventListener("touchend", rilasciatoTap);
+}
+
 
 window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
@@ -49,6 +71,7 @@ function run()
 
     ctx.fillStyle=grd;
     ctx.fillRect(0,0, canvasW, canvasH);
+
     if(level==0)
     {
         drawLightning();
@@ -529,6 +552,8 @@ function run()
         }
     }
     drawParticle();
+
+    translateMouseIntoKeyboard();
 }
 function gameover()
 {
@@ -779,6 +804,7 @@ function drawPg()
 	pg.dy+=pg.ay;
 }
 function keyDown(e) {
+    useKeyboard=true;
 	Kpressed[e.keyCode]=true;
 	//alert(e.keyCode);
 }
@@ -966,4 +992,108 @@ function drawShootingstar()
     st.ttl=12;
     particles.push(st);
 
+}
+//controlli mobile
+function translateMouseIntoKeyboard()
+{
+    /*//debug per i controlli mobile
+    ctx.fillStyle="#FFFF00";
+    ctx.fillRect(mousex,mousey,20,20);
+    ctx.fillStyle="#FF0000";
+    ctx.fillRect(mouse2x,mouse2y,20,20);
+    ctx.fillStyle="#00FF00";
+    ctx.fillRect(mouse3x,mouse3y,20,20);*/
+    if(level==0)
+    {
+        if(mousex>pg.px && mousex<pg.px+45 && mousey>pg.py && mousey<pg.py+50) Kpressed[68]=true;
+        return;
+    }
+    if(useKeyboard) return;
+    
+    Kpressed[79]=false;//O
+    Kpressed[82]=false;//R
+    Kpressed[76]=false;//L
+    Kpressed[68]=false;//D
+
+    //HUD
+    ctx.fillStyle="#FFFFFF";
+    ctx.globalAlpha=0.1;
+    if(level==7) ctx.fillRect(8,canvasH-28,26,25);
+    if(level>4)ctx.fillRect(258,canvasH-28,26,25);
+    if(level>2)ctx.fillRect(518,canvasH-28,26,25);
+    if(level>0)ctx.fillRect(768,canvasH-28,26,25);
+    ctx.globalAlpha=1;
+    ctx.font = "30px Courier bold";
+    if(level==7) ctx.fillText("O",10,canvasH-5);
+    if(level>4)ctx.fillText("R",260,canvasH-5);
+    if(level>2)ctx.fillText("L",520,canvasH-5);
+    if(level>0)ctx.fillText("D",770,canvasH-5);
+
+    //controlliamo i mouse
+    if(mousex<50 && mousey>550) Kpressed[79]=true;
+    else if(mouse2x<50 && mouse2y>550) Kpressed[79]=true;
+    else if(mouse3x<50 && mouse3y>550) Kpressed[79]=true;
+
+    if(mousex>250 && mousex<300 && mousey>550) Kpressed[82]=true;
+    else if(mouse2x>250 && mouse2x<300 && mouse2y>550) Kpressed[82]=true;
+    else if(mouse3x>250 && mouse3x<300 && mouse3y>550) Kpressed[82]=true;
+
+    if(mousex>500 && mousex<550 && mousey>550) Kpressed[76]=true;
+    else if(mouse2x>500 && mouse2x<550 && mouse2y>550) Kpressed[76]=true;
+    else if(mouse3x>500 && mouse3x<550 && mouse3y>550) Kpressed[76]=true;
+
+    if(mousex>740 && mousey>550) Kpressed[68]=true;
+    else if(mouse2x>740 && mouse2y>550) Kpressed[68]=true;
+    else if(mouse3x>740 && mouse3y>550) Kpressed[68]=true;
+
+    if(level<=2)
+    if(level<=4)
+    if(level<=6)
+}
+function mossoTap(evt)
+{
+    evt.preventDefault();
+    dragging=true;
+    var rect = canvas.getBoundingClientRect();
+    mousex = evt.targetTouches[0].pageX,
+    mousey = evt.targetTouches[0].pageY;
+    if(evt.targetTouches.length<2) return;
+    mouse2x = evt.targetTouches[1].pageX,
+    mouse2y = evt.targetTouches[1].pageY;
+    if(evt.targetTouches.length<3) return;
+    mouse3x = evt.targetTouches[2].pageX,
+    mouse3y = evt.targetTouches[2].pageY;
+    
+
+}
+function cliccatoTap(evt)
+{
+    evt.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    mousex = evt.targetTouches[0].pageX,
+    mousey = evt.targetTouches[0].pageY;
+    if(evt.targetTouches.length<2) return;
+    mouse2x = evt.targetTouches[1].pageX,
+    mouse2y = evt.targetTouches[1].pageY;
+    if(evt.targetTouches.length<3) return;
+    mouse3x = evt.targetTouches[2].pageX,
+    mouse3y = evt.targetTouches[2].pageY;
+}
+function rilasciatoTap(evt)
+{
+    evt.preventDefault();
+    dragging=false;
+    mousey=-100;
+    mousex=-100;
+    mouse2y=-100;
+    mouse2x=-100;
+    mouse3y=-100;
+    mouse3x=-100;
+}
+//uindows
+function mossoMouse(evt)
+{
+    var rect = canvas.getBoundingClientRect();
+    mousex=(evt.clientX-rect.left)/(rect.right-rect.left)*canvasW;
+    mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;
 }

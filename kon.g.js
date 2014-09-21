@@ -644,6 +644,8 @@ function levelUp()
         pg.py=canvasH-46;
         shooting=false;
         bullet=new Object();
+        bullet.px=-100;
+        bullet.py=-100;
         //generiamo gli alieni
         string="ALIENS";
         for(k=0;k<3;k++)
@@ -661,6 +663,13 @@ function levelUp()
         aliens.dx=3-nGameOvers/10;
         if(aliens.dx<1) aliens.dx=1;
         aliens.width=470;
+    }
+    else if(level==6)
+    {
+        pg.ax=0;
+        pg.dx=0;
+        pg.ay=0;
+        pg.dy=0;
     }
     else if(level==7)
     {
