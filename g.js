@@ -56,6 +56,18 @@ else
     canvas.addEventListener("touchend", rilasciatoTap);
 }
 
+//i suoni
+var tonfo = new Audio("sound/tonfo.mp3");
+var fire = new Audio("sound/fire.mp3");
+var thunder = new Audio("sound/thunder.mp3");
+var splash = new Audio("sound/splash.mp3");
+var splash1 = new Audio("sound/splash1.mp3");
+var splash2 = new Audio("sound/splash2.mp3");
+var prosciuga = new Audio("sound/prosciuga.mp3")
+var explode = new Audio("sound/explode.mp3")
+var shoot = new Audio("sound/shoot.mp3")
+var earthquake = new Audio("sound/earthquake.mp3")
+
 
 window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
@@ -124,11 +136,13 @@ function run()
         //sbatte contro i muri
     	if(pg.px<15 && pg.dx<0)
             {
+                tonfo.play();
                 pg.dx=-pg.dx*0.6;
                 hurtParticle(pg.px,pg.py+pg.height/2,"#00FF00");
             }
     	if(pg.px>canvasW-55 && pg.dx>0)
         {
+            tonfo.play();
             pg.dx=-pg.dx*0.6;
             hurtParticle(pg.px+pg.width,pg.py+pg.height/2,"#00FF00");
         }
@@ -188,6 +202,11 @@ function run()
         if(pg.py>400)
         {
             if(pg.dy>2) pg.dy=pg.dy-2;
+            if(pg.py>400 && pg.py<420 && pg.dy>0)
+            {
+                if(pg.py>410) splash2.play();
+                else splash.play();
+            }
             pg.ay=-0.2;
             pg.ax=0;
             pg.dx=0;
@@ -201,7 +220,11 @@ function run()
     else if(level==3)
     {
         ctx.save();
-        if(++progressLevel<30) ctx.translate(rand(-1,2),rand(-2,2));
+        if(++progressLevel<30)
+        {
+            ctx.translate(rand(-1,2),rand(-2,2));
+            earthquake.play();
+        }
         if(ostacoli.length>2) drawCalcinacci();
         //muri
         ctx.fillStyle="#7B7B7B";
@@ -220,11 +243,13 @@ function run()
         //sbatte contro i muri
         if(pg.px<15 && pg.dx<0)
         {
+            tonfo.play();
             pg.dx=-pg.dx*0.6;
             hurtParticle(pg.px,pg.py+pg.height/2,"#00FF00");
         }
         if(pg.px>canvasW-90 && pg.dx>0)
         {
+            tonfo.play();
             pg.dx=-pg.dx*0.6;
             hurtParticle(pg.px+pg.width,pg.py+pg.height/2,"#00FF00");
         }
@@ -244,9 +269,13 @@ function run()
                 }
                 else if(ostacoli[i].dy==2 && pg.dx>0 && pg.px<ostacoli[i].px) pg.dx=0;
                 else if(ostacoli[i].dy==2 && pg.dx<0 && pg.px>ostacoli[i].px) pg.dx=0;
+                tonfo.play();
             }
-            if(ostacoli[i].py>370 && ostacoli[i].py<380)
+            if(ostacoli[i].py>370 && ostacoli[i].dy!=2)
             {
+                if(splash.paused) splash.play();
+                else if(splash1.paused) splash1.play();
+                else if(splash2.paused) splash2.play();
                 ostacoli[i].dy=2;
                 hurtParticle(ostacoli[i].px+ostacoli[i].width/2,ostacoli[i].py+ostacoli[i].height,"#007eff");
             }
@@ -309,6 +338,7 @@ function run()
             levelUp();
             return;
         }
+        if(progressLevel<2) prosciuga.play();
         progressLevel+=2;
         if(progressLevel<155) pg.py+=2;
     }
@@ -337,8 +367,16 @@ function run()
         //speed limit
         if(Math.abs(pg.dx)>5) pg.dx=5*pg.dx/Math.abs(pg.dx);
         //sbatte contro i muri
-        if(pg.px<15 && pg.dx<0) pg.dx=-pg.dx*0.6;
-        if(pg.px>canvasW-132 && pg.dx>0) pg.dx=-pg.dx*0.6;
+        if(pg.px<15 && pg.dx<0)
+        {
+            pg.dx=-pg.dx*0.6;
+            tonfo.play();
+        }
+        if(pg.px>canvasW-132 && pg.dx>0)
+        {
+            pg.dx=-pg.dx*0.6;
+            tonfo.play();
+        }
 
         //i nemici, ALIENI
         ctx.fillStyle="#FFFFFF";
@@ -358,6 +396,7 @@ function run()
                 bullet.px=-100;
                 shooting=false;
                 i=i-1;
+                explode.play();
                 continue;
             }
             else if(pg.py+pg.height>aliens[i].py-35 && pg.py<aliens[i].py+aliens[i].height-35 && pg.px+pg.width>aliens[i].px && pg.px<aliens[i].px+aliens[i].width)
@@ -382,6 +421,7 @@ function run()
         //spara
         if(!shooting && Kpressed[76])
         {
+            shoot.play();
             shooting=true;
             bullet.px=pg.px+48;
             bullet.py=555;
@@ -402,8 +442,16 @@ function run()
     {
         drawLightning();
         ctx.save();
-        if(progressLevel<100) ctx.translate(rand(-1,2),rand(-2,2));
-        if(progressLevel>200) ctx.translate(rand(-4,4),rand(-4,4));
+        if(progressLevel<100)
+        {
+            ctx.translate(rand(-1,2),rand(-2,2));
+            earthquake.play();
+        }
+        if(progressLevel>200)
+        {
+            ctx.translate(rand(-4,4),rand(-4,4));
+            earthquake.play();
+        }
         //muri
         ctx.fillStyle="#7B7B7B";
         ctx.font = "30px Courier";
@@ -474,6 +522,7 @@ function run()
             {
                 pg.dx=ostacoli[i].dx;
                 hurtParticle(ostacoli[i].px,ostacoli[i].py+ostacoli[i].height/2,"#7B7B7B");
+                tonfo.play();
             }
             ostacoli[i].draw();
             if(ostacoli[i].px<-100)
@@ -557,6 +606,7 @@ function run()
 }
 function gameover()
 {
+    fire.play();
     //return;
     nGameOvers++;
     level--;
@@ -911,7 +961,11 @@ function drawLightning()
 {
     ctx.restore();
     if(--lightningDelay>0) return;
-    if(lightningDelay==0) lightningstartx=rand(0,canvasW);
+    if(lightningDelay==0)
+    {
+        thunder.play();
+        lightningstartx=rand(0,canvasW);
+    }
     if(lightningDelay<-5) lightningDelay=rand(200,600);
     ctx.save();
     ctx.globalAlpha=0.5;
@@ -1045,10 +1099,6 @@ function translateMouseIntoKeyboard()
     if(mousex>740 && mousey>550) Kpressed[68]=true;
     else if(mouse2x>740 && mouse2y>550) Kpressed[68]=true;
     else if(mouse3x>740 && mouse3y>550) Kpressed[68]=true;
-
-    if(level<=2)
-    if(level<=4)
-    if(level<=6)
 }
 function mossoTap(evt)
 {
