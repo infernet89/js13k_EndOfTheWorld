@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <title>FGL Ninja</title>
+        <meta name='viewport' content='width=1024, user-scalable=no' />
+        
+        <!-- Basic styling and a Google web font -->
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #000;
+            }
+            
+            #canvas {
+                background-color: #000;
+            }
+            
+            @font-face {
+                font-family: 'Carter One';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Carter One'), local('CarterOne'), url(game/carterone.woff) format('woff');
+            }
+        </style>
+        
+    </head>
+    <body>
+        <!-- Our main game canvas. This is what we pass to the FGL SDK as our game element -->
+        <canvas id="canvas" width="1024" height="600"></canvas>
+        
+        
+        
+        <!-- Import the FGL SDK: -->
+        <script src="fgl.js"></script>
+        <script src="fgl-scaler.js"></script>
+        
+        <!-- Our sample game, and any other libraries we need: -->
+        <script src="game/jquery.min.js"></script>
+        <script src="game.js"></script>
+        
+        <script>
+        var element = document.getElementById('canvas');
+        
+        // Create an auto scaler for our game image, telling it the original size:
+        new AutoScaler(element, 1024, 600, 0.15);
+		
+        // Start the game
+        new FGLNinja(element).boot();
+        
+        </script>
+    </body>
+</html>

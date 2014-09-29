@@ -2,6 +2,7 @@
 var TO_RADIANS = Math.PI/180; 
 
 //global variables
+var rescalercheck;
 var canvas;
 var ctx;
 var canvasW=800;
@@ -25,6 +26,9 @@ var nGameOvers=0;
 var shootingStardelay;
 var useKeyboard=false;
 var soundenabled=true;
+var paused=false;
+var loaded=false;
+var inPreload=true;
 
 //mobile controls
 var mousex=-100;
@@ -46,16 +50,23 @@ pg.dy=0;
 pg.ax=0;
 pg.ay=0;
 
-if (window.navigator.pointerEnabled) {
+/*if (window.navigator.pointerEnabled) {
     canvas.addEventListener("pointermove", mossoMouse, false);
     canvas.addEventListener("pointerup", rilasciatoTap, false);
 }
 else
-{
+{*/
     canvas.addEventListener("touchmove", mossoTap);
     canvas.addEventListener("touchstart", cliccatoTap);
     canvas.addEventListener("touchend", rilasciatoTap);
-}
+//}
+canvas.addEventListener("mousedown", cliccatoMouse);
+canvas.addEventListener("mouseup", rilasciatoMouse);
+ canvas.addEventListener("mousemove", mossoMouse);
+
+//LE immagini
+var pausebutton=new Image();
+pausebutton.src="pausebutton.png";
 
 //i suoni
 var tonfo = new Audio("sound/tonfo.mp3");
@@ -71,24 +82,70 @@ var earthquake = new Audio("sound/earthquake.mp3");
 var alienmovedown = new Audio("sound/alienmovedown.mp3");
 var spawnaliens = new Audio("sound/spawnaliens.mp3");
 var bgmusic = new Audio("sound/calmassoluta.mp3");
-    bgmusic.addEventListener('ended', function() {
-        this.currentTime = 0;
-        this.play();
-    }, false);
-    bgmusic.addEventListener('timeupdate', function(){
-                var buffer = .44
-                if(this.currentTime > this.duration - buffer){
-                    this.currentTime = 0
-                    this.play()
-                }}, false);
-
+bgmusic.onloadeddata=function() { loaded=true; }
+bgmusic.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+}, false);
+bgmusic.addEventListener('timeupdate', function(){
+    var buffer = .44
+    if(this.currentTime > this.duration - buffer){
+        this.currentTime = 0
+        this.play()
+}}, false);
 
 
 window.addEventListener('keydown',keyDown,false);
 window.addEventListener('keyup',keyUp,false);
-activeTask=setInterval(run, 33);
+
+activeTask=setInterval(preload, 300);
+
+fgl.showAd();
+if(fgl.brandingEnabled){
+    var brandimage=new Image();
+    brandimage.src=fgl.getBrandingLogo();
+}
+setTimeout(function(){loaded=true;}, 5000);
+
 
 //levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();levelUp();//DEBUG!
+function preload()
+{
+    ctx.clearRect(0, 0, canvasW, canvasH);
+    ctx.fillStyle="#000000";
+    ctx.fillRect(0,0, canvasW, canvasH);
+    ctx.fillStyle="#FFFFFF";
+    ctx.font = "40px Arial";
+    if(loaded)
+    {
+        ctx.fillText("The END of the WORLD is loaded",100,200);
+        ctx.font = "80px Arial";
+        if(progressLevel%2==0) ctx.fillText("Click to play",180,500);
+    }
+    else
+    {
+        if(progressLevel%5==0) ctx.fillText("The END of the WORLD is loading",100,200);
+        else if(progressLevel%5==1) ctx.fillText("The END of the WORLD is loading.",100,200);
+        else if(progressLevel%5==2) ctx.fillText("The END of the WORLD is loading..",100,200);
+        else if(progressLevel%5==3) ctx.fillText("The END of the WORLD is loading...",100,200);
+        else if(progressLevel%5==4) ctx.fillText("The END of the WORLD is loading....",100,200);
+    }
+    progressLevel++;
+}
+function pause()
+{
+    paused=!paused;
+    if(paused)
+    {
+        bgmusic.pause();
+        clearInterval(activeTask);
+    }
+    else
+    {
+        bgmusic.play();
+        activeTask=setInterval(run, 33);
+    }
+}
 function run()
 {
 	ctx.clearRect(0, 0, canvasW, canvasH);
@@ -129,8 +186,18 @@ function run()
     	if(progressLevel%40<30) if(pg.ay==0) ctx.fillText("press D to start",300,400);
         ctx.font = "10px Arial";
         ctx.fillText("Made for JS13KGames competition",620,590);
+        if(fgl.crossPromotionEnabled)
+        {
+            ctx.fillStyle="#ffc600";
+            ctx.font = "20px Arial";
+            ctx.fillText("More Games",10,590);
+        }
         progressLevel++;
     	if(pg.py>canvasH) levelUp();
+        //branding
+        if(fgl.brandingEnabled){
+            ctx.drawImage(brandimage,250,500);
+        }
     }
     else if(level==1)
     {//vertical falling
@@ -623,14 +690,22 @@ function run()
         //document.title=progressLevel;
         if(progressLevel>600)
         {
-            kongregate.stats.submit("ndeaths",nGameOvers);
+            //kongregate.stats.submit("ndeaths",nGameOvers);
+            fgl.submitScore(ndeaths);
+            if(fgl.hasAchievement("gamecompleted")) fgl.grantAchievement(gamecompleted);
+
             level=-1;
             levelUp();
         }
     }
     drawParticle();
+    drawHud();
 
     translateMouseIntoKeyboard();
+}
+function drawHud()
+{
+    ctx.drawImage(pausebutton, 0, 0);
 }
 function gameover()
 {
@@ -899,6 +974,7 @@ function keyDown(e) {
         if(soundenabled) bgmusic.play();
         else bgmusic.pause();
     }
+    else if(e.keyCode==80) pause();
 }
 function keyUp(e) {
 	Kpressed[e.keyCode]=false;
@@ -1089,27 +1165,120 @@ function drawShootingstar()
     particles.push(st);
 
 }
+function cliccatoMouse(evt)
+{
+    dragging=true;
+    var rect = canvas.getBoundingClientRect();
+    mousex=(evt.clientX-rect.left)/(rect.right-rect.left)*canvasW;
+    mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;
+    if(inPreload)
+    {
+        //carico le musiche qui perchè gli iPad son cretini
+        tonfo.load();
+        fire.load();
+        thunder.load();
+        splash.load();
+        splash1.load();
+        splash2.load();
+        prosciuga.load();
+        explode.load();
+        shoot.load();
+        earthquake.load();
+        alienmovedown.load();
+        spawnaliens.load();
+        bgmusic.load();
+    }
+    if(inPreload && loaded)
+    {
+        clearInterval(rescalercheck);
+        clearInterval(activeTask);
+        activeTask=setInterval(run, 33);
+        inPreload=false;
+    }
+    if(mousex<50 && mousey<50) pause();
+}
+function rilasciatoMouse(evt)
+{
+    dragging=false;
+    mousex=-100;
+    mousey=-100;
+}
+function mossoMouse(evt)
+{
+    if(!dragging) return;
+    var rect = canvas.getBoundingClientRect();
+    mousex=(evt.clientX-rect.left)/(rect.right-rect.left)*canvasW;
+    mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;
+}
 //controlli mobile
 function translateMouseIntoKeyboard()
 {
-    /*//debug per i controlli mobile
+    if(useKeyboard) return;
+    Kpressed[79]=false;//O
+    Kpressed[82]=false;//R
+    Kpressed[76]=false;//L
+    Kpressed[68]=false;//D
+
+    if(level==0 && dragging)
+    {
+        if(mousex>pg.px && mousex<pg.px+45 && mousey>pg.py && mousey<pg.py+50) Kpressed[68]=true;
+        if(fgl.crossPromotionEnabled && mousex<140 && mousey>570)
+        {
+            dragging=false;
+            fgl.showMoreGames();
+        }
+        if(fgl.brandingEnabled && mousex>250 && mousex<500 && mousey>500)
+        {
+            dragging=false;
+            fgl.handleBrandingClick();
+        }
+
+    }
+    else if(level==1)
+    {
+        Kpressed[68]=dragging;
+    }
+    else if(level==3 && dragging)
+    {
+        if(mousex<pg.px) Kpressed[76]=true;
+        else if(mousex>pg.px+80) Kpressed[68]=true;
+    }
+    else if(level==5 && dragging)
+    {
+        if(mousex<pg.px) Kpressed[82]=true;
+        else if(mousex>pg.px+110) Kpressed[68]=true;
+        if(mousey<500) Kpressed[76]=true;
+    }
+    else if(level==7 && dragging)
+    {
+        if(mousex<pg.px) Kpressed[79]=true;
+        else if(mousex>pg.px+160) Kpressed[68]=true;
+        if(mousey<pg.py) Kpressed[82]=true;
+        else if(mousey>pg.py+50) Kpressed[76]=true;
+    }
+    /* //debug per i controlli mobile
     ctx.fillStyle="#FFFF00";
     ctx.fillRect(mousex,mousey,20,20);
     ctx.fillStyle="#FF0000";
     ctx.fillRect(mouse2x,mouse2y,20,20);
     ctx.fillStyle="#00FF00";
     ctx.fillRect(mouse3x,mouse3y,20,20);*/
+    return;
+
+
+
+
+
+
+
+
+
+
+    //OLD SCHOOL
     if(level==0)
     {
         if(mousex>pg.px && mousex<pg.px+45 && mousey>pg.py && mousey<pg.py+50) Kpressed[68]=true;
-        return;
     }
-    if(useKeyboard) return;
-    
-    Kpressed[79]=false;//O
-    Kpressed[82]=false;//R
-    Kpressed[76]=false;//L
-    Kpressed[68]=false;//D
 
     //HUD
     ctx.fillStyle="#FFFFFF";
@@ -1145,31 +1314,66 @@ function translateMouseIntoKeyboard()
 function mossoTap(evt)
 {
     evt.preventDefault();
-    dragging=true;
+    //dragging=true;
     var rect = canvas.getBoundingClientRect();
-    mousex = evt.targetTouches[0].pageX,
+    mousex = evt.targetTouches[0].pageX;
     mousey = evt.targetTouches[0].pageY;
-    if(evt.targetTouches.length<2) return;
+    mousex -= parseFloat(canvas.style.marginLeft);
+    mousey -= parseFloat(canvas.style.marginTop);
+    mousex /= parseFloat(canvas.style.width) /800;
+    mousey /= parseFloat(canvas.style.height)/600;
+   /* if(evt.targetTouches.length<2) return;
     mouse2x = evt.targetTouches[1].pageX,
     mouse2y = evt.targetTouches[1].pageY;
     if(evt.targetTouches.length<3) return;
     mouse3x = evt.targetTouches[2].pageX,
-    mouse3y = evt.targetTouches[2].pageY;
+    mouse3y = evt.targetTouches[2].pageY;*/
     
 
 }
 function cliccatoTap(evt)
 {
     evt.preventDefault();
+    dragging=true;
     var rect = canvas.getBoundingClientRect();
-    mousex = evt.targetTouches[0].pageX,
+    mousex = evt.targetTouches[0].pageX;
     mousey = evt.targetTouches[0].pageY;
-    if(evt.targetTouches.length<2) return;
+    mousex -= parseFloat(canvas.style.marginLeft);
+    mousey -= parseFloat(canvas.style.marginTop);
+    mousex /= parseFloat(canvas.style.width) /800;
+    mousey /= parseFloat(canvas.style.height)/600;
+    //document.title=mousex+" "+mousey;
+    if(inPreload)
+    {
+        //carico le musiche qui perchè gli iPad son cretini
+        tonfo.load();
+        fire.load();
+        thunder.load();
+        splash.load();
+        splash1.load();
+        splash2.load();
+        prosciuga.load();
+        explode.load();
+        shoot.load();
+        earthquake.load();
+        alienmovedown.load();
+        spawnaliens.load();
+        bgmusic.load();
+    }
+    if(inPreload && loaded)
+    {
+        clearInterval(rescalercheck);
+        clearInterval(activeTask);
+        activeTask=setInterval(run, 33);
+        inPreload=false;
+    }
+    if(mousex<50 && mousey<50) pause();
+    /*if(evt.targetTouches.length<2) return;
     mouse2x = evt.targetTouches[1].pageX,
     mouse2y = evt.targetTouches[1].pageY;
     if(evt.targetTouches.length<3) return;
     mouse3x = evt.targetTouches[2].pageX,
-    mouse3y = evt.targetTouches[2].pageY;
+    mouse3y = evt.targetTouches[2].pageY;*/
 }
 function rilasciatoTap(evt)
 {
@@ -1177,10 +1381,10 @@ function rilasciatoTap(evt)
     dragging=false;
     mousey=-100;
     mousex=-100;
-    mouse2y=-100;
+    /*mouse2y=-100;
     mouse2x=-100;
     mouse3y=-100;
-    mouse3x=-100;
+    mouse3x=-100;*/
 }
 //uindows
 function mossoMouse(evt)
@@ -1189,3 +1393,58 @@ function mossoMouse(evt)
     mousex=(evt.clientX-rect.left)/(rect.right-rect.left)*canvasW;
     mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;
 }
+
+window.AutoScaler = function(element, initialWidth, initialHeight, skewAllowance){
+    var self = this;
+    
+    this.viewportWidth  = 0;
+    this.viewportHeight = 0;
+    
+    if (typeof element === "string")
+        element = document.getElementById(element);
+    
+    this.element = element;
+    this.gameAspect = initialWidth/initialHeight;
+    this.skewAllowance = skewAllowance || 0;
+    
+    this.checkRescale = function() {
+        if (window.innerWidth == self.viewportWidth && 
+            window.innerHeight == self.viewportHeight) return;
+        
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        
+        var windowAspect = w/h;
+        var targetW = 0;
+        var targetH = 0;
+        
+        targetW = w;
+        targetH = h;
+        
+        if (Math.abs(windowAspect - self.gameAspect) > self.skewAllowance) {
+            if (windowAspect < self.gameAspect)
+                targetH = w / self.gameAspect;
+            else
+                targetW = h * self.gameAspect;
+        }
+        
+        self.element.style.width  = targetW + "px";
+        self.element.style.height = targetH + "px";
+    
+        self.element.style.marginLeft = ((w - targetW)/2) + "px";
+        self.element.style.marginTop  = ((h - targetH)/2) + "px";
+    
+        self.viewportWidth  = w;
+        self.viewportHeight = h;
+        
+    }
+    
+    // Ensure our element is going to behave:
+    self.element.style.display = 'block';
+    self.element.style.margin  = '0';
+    self.element.style.padding = '0';
+    
+    // Add event listeners and timer based rescale checks:
+    window.addEventListener('resize', this.checkRescale);
+    rescalercheck=setInterval(this.checkRescale, 150);
+};

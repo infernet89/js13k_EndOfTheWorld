@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>FGL SDK: Scaling example</title>
+        
+        <!-- Simple styles to make sure we don't get scrollbars or margins -->
+        <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        </style>
+    </head>
+    <body>
+        <!-- This example uses an IMG tag as a placeholder for the game, but this could be any HTML element -->
+        <img id='game_img' src='img/portrait-placeholder.png' />
+        
+        <!-- 
+            The following script may be used to help scaling of your game - it will scale a single
+            HTML element to the correct size but it does NOT take care of scaling game content. 
+            This is intended as an implementation reference only, but can be used if useful. 
+        -->
+        <script src="fgl-scaler.js" language="javascript"></script>
+        
+        <script>
+        // Create an auto scaler for our game image, telling it the original size:
+        new AutoScaler('game_img', 600, 1024);
+        </script>
+    </body>
+</html>

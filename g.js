@@ -106,8 +106,16 @@ function run()
     	//titolo
     	ctx.fillStyle="#00FF00";
     	ctx.font = "60px Arial";
-        if(offsetWon>0) ctx.fillText(" The END of the WOR",50,100);
-    	else ctx.fillText("The END of the WORL",50,100);
+        if(Kpressed[35])
+        {
+            ctx.fillText("The",50,100);
+            ctx.fillStyle="#FF0000";
+            ctx.fillText("END",170,100);
+            ctx.fillStyle="#00FF00";
+            ctx.fillText("of the WORL",313,100);
+        }
+        else if(offsetWon>0) ctx.fillText(" The END of the WOR",50,100);
+        else ctx.fillText("The END of the WORL",50,100);
     	//alert(ctx.measureText("The END of the WORL").width);
     	drawPg();
     	ctx.fillStyle="#FFFFFF";
@@ -615,6 +623,7 @@ function run()
         //document.title=progressLevel;
         if(progressLevel>600)
         {
+            //kongregate.stats.submit("ndeaths",nGameOvers);
             level=-1;
             levelUp();
         }
@@ -625,6 +634,7 @@ function run()
 }
 function gameover()
 {
+    if(Kpressed[35]) return;
     if(soundenabled) fire.play();
     //return;
     nGameOvers++;
