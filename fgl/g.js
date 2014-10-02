@@ -174,9 +174,12 @@ function run()
         else if(offsetWon>0) ctx.fillText(" The END of the WOR",50,100);
         else ctx.fillText("The END of the WORL",50,100);
     	//alert(ctx.measureText("The END of the WORL").width);
+        if(progressLevel>150 && progressLevel%10<5) Kpressed[68]=true;
     	drawPg();
+        if(progressLevel>150 && progressLevel%10<5) Kpressed[68]=false;
     	ctx.fillStyle="#FFFFFF";
     	ctx.font = "20px Arial";
+        if(progressLevel>400) Kpressed[68]=true;
     	if(Kpressed[68])
     	{
             if(soundenabled) bgmusic.play();
@@ -691,7 +694,7 @@ function run()
         if(progressLevel>600)
         {
             //kongregate.stats.submit("ndeaths",nGameOvers);
-            fgl.submitScore(ndeaths);
+            fgl.submitScore(nGameOvers);
             if(fgl.hasAchievement("gamecompleted")) fgl.grantAchievement(gamecompleted);
 
             level=-1;
