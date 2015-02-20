@@ -67,6 +67,10 @@ canvas.addEventListener("mouseup", rilasciatoMouse);
 //LE immagini
 var pausebutton=new Image();
 pausebutton.src="pausebutton.png";
+var mutebutton=new Image();
+mutebutton.src="mutebutton.png";
+var audiobutton=new Image();
+audiobutton.src="audiobutton.png";
 
 //i suoni
 var tonfo = new Audio("sound/tonfo.mp3");
@@ -179,7 +183,7 @@ function run()
         if(progressLevel>150 && progressLevel%10<5) Kpressed[68]=false;
     	ctx.fillStyle="#FFFFFF";
     	ctx.font = "20px Arial";
-        if(progressLevel>400) Kpressed[68]=true;
+        //if(progressLevel>5200) Kpressed[68]=true;
     	if(Kpressed[68])
     	{
             if(soundenabled) bgmusic.play();
@@ -709,6 +713,8 @@ function run()
 function drawHud()
 {
     ctx.drawImage(pausebutton, 0, 0);
+    if(soundenabled) ctx.drawImage(mutebutton,750,0);
+    else ctx.drawImage(audiobutton,750,0);
 }
 function gameover()
 {
@@ -1199,6 +1205,12 @@ function cliccatoMouse(evt)
         inPreload=false;
     }
     if(mousex<50 && mousey<50) pause();
+    if(mousex>750 && mousey<50)
+    {
+        soundenabled=!soundenabled;
+        if(soundenabled) bgmusic.play();
+        else bgmusic.pause();
+    }
 }
 function rilasciatoMouse(evt)
 {
@@ -1216,12 +1228,6 @@ function mossoMouse(evt)
 //controlli mobile
 function translateMouseIntoKeyboard()
 {
-    if(useKeyboard) return;
-    Kpressed[79]=false;//O
-    Kpressed[82]=false;//R
-    Kpressed[76]=false;//L
-    Kpressed[68]=false;//D
-
     if(level==0 && dragging)
     {
         if(mousex>pg.px && mousex<pg.px+45 && mousey>pg.py && mousey<pg.py+50) Kpressed[68]=true;
@@ -1236,6 +1242,15 @@ function translateMouseIntoKeyboard()
             fgl.handleBrandingClick();
         }
 
+    }
+    if(useKeyboard) return;
+    Kpressed[79]=false;//O
+    Kpressed[82]=false;//R
+    Kpressed[76]=false;//L
+    Kpressed[68]=false;//D
+    if(level==0 && dragging)
+    {
+        if(mousex>pg.px && mousex<pg.px+45 && mousey>pg.py && mousey<pg.py+50) Kpressed[68]=true;
     }
     else if(level==1)
     {
@@ -1371,6 +1386,12 @@ function cliccatoTap(evt)
         inPreload=false;
     }
     if(mousex<50 && mousey<50) pause();
+    if(mousex>750 && mousey<50)
+    {
+        soundenabled=!soundenabled;
+        if(soundenabled) bgmusic.play();
+        else bgmusic.pause();
+    }
     /*if(evt.targetTouches.length<2) return;
     mouse2x = evt.targetTouches[1].pageX,
     mouse2y = evt.targetTouches[1].pageY;
